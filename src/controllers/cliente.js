@@ -1,41 +1,63 @@
+const Cliente = require('../models/Cliente')
+
 const ClienteController = {
 
-  index: (req, res) => {
-    res.json([]);
+  index: async (req,res) => {
+    const allClientes = await Cliente.findAll()
+    res.json(allClientes);
   },
 
-  store: (req, res) => {
-    res.json(req.body)
+  store: async (req, res) => {
+    const { nome, sobrenome, cpf, data_nascimento, telefone, email } = req.body;
+    const novoCliente = await Cliente.create({ nome, sobrenome, cpf, data_nascimento, telefone, email })
+    res.json(novoCliente)
   },
 
-  show: (req, res) => {
-    const {
-      id
-    } = req.params;
+  show: async (req, res) => {
+    const { id } = req.params;
+    const cliente = await Cliente.findByPk(id);
 
-    res.json({
-      id,
-      nome: "José",
-      sobrenome: "da Silva",
-      cpf: 123456789-10,
-      data_nascimento: "10-10-10",
-      telefone: 35353535,
-      email: "jose@email.com"
-    });
+    if(cliente){
+      res.json(cliente);
+    } else {
+      res.status(404).json("Cliente não encontrado");
+    }
+
   },
 
-  update: (req, res) => {
-    const {
-      id
-    } = req.params;
+  update: async (req, res) => {
+    const { id } = req.params;
+    const { nome, sobrenome, cpf, data_nascimento, telefone, email } = req.body;
 
-    res.json({
-      id,
-      ...(req.body || {}),
-    });
+    const cliente = await Cliente.findByPk(id);
+
+    if(!cliente){
+      res.status(404).json({
+        message: "Cliente não encontrado"}
+      );
+    }
+
+    await Cliente.update({ nome, sobrenome, cpf, data_nascimento, telefone, email },{where: {codigo: id}});
+
+    const clienteAtualizado = await Cliente.findByPk(id);
+
+    res.json(clienteAtualizado);
+
   },
 
-  destroy: (req, res) => {
+  destroy: async (req, res) => {
+    const { id } = req.params;
+
+    const cliente = await Cliente.findByPk(id);
+
+    if(!cliente){
+      res.status(404).json({
+        message: "Cliente não encontrado"}
+        );
+    }
+
+    await cliente.destroy();
+
     res.status(204).send("");
   },
 }

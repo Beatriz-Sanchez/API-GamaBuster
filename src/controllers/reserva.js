@@ -1,38 +1,63 @@
+const Reserva = require("../models/Reserva")
+
 const ReservaController = {
 
-  index: (req, res) => {
-    res.json([]);
+  index: async (req,res) => {
+    const allReservas = await Reserva.findAll()
+    res.json(allReservas);
   },
 
-  store: (req, res) => {
-    res.json(req.body)
+  store: async (req, res) => {
+    const { data_reserva, data_limite_devolucao, total } = req.body;
+    const novoReserva = await Reserva.create({ data_reserva, data_limite_devolucao, total })
+    res.json(novoReserva)
   },
 
-  show: (req, res) => {
-    const {
-      id
-    } = req.params;
+  show: async (req, res) => {
+    const { id } = req.params;
+    const reserva = await Reserva.findByPk(id);
 
-    res.json({
-      id,
-      data_reserva: "10-10-10",
-      data_limite_devolucao: "10-11-10",
-      total: 100.00
-    });
+    if(reserva){
+      res.json(reserva);
+    } else {
+      res.status(404).json("Reserva não encontrado");
+    }
+
   },
 
-  update: (req, res) => {
-    const {
-      id
-    } = req.params;
+  update: async (req, res) => {
+    const { id } = req.params;
+    const { data_reserva, data_limite_devolucao, total } = req.body;
 
-    res.json({
-      id,
-      ...(req.body || {}),
-    });
+    const reserva = await Reserva.findByPk(id);
+
+    if(!reserva){
+      res.status(404).json({
+        message: "Reserva não encontrado"}
+      );
+    }
+
+    await Reserva.update({ data_reserva, data_limite_devolucao, total },{where: {codigo: id}});
+
+    const reservaAtualizada = await Reserva.findByPk(id);
+
+    res.json(reservaAtualizada);
+
   },
 
-  destroy: (req, res) => {
+  destroy: async (req, res) => {
+    const { id } = req.params;
+
+    const reserva = await Reserva.findByPk(id);
+
+    if(!reserva){
+      res.status(404).json({
+        message: "Reserva não encontrado"}
+        );
+    }
+
+    await reserva.destroy();
+
     res.status(204).send("");
   },
 }

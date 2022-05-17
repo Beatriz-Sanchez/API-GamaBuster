@@ -20,7 +20,7 @@ const FilmeController = {
     if(filme){
       res.json(filme);
     } else {
-      res.status(404).json("Gênero não encontrado");
+      res.status(404).json("Filme não encontrado");
     }
 
   },
@@ -33,7 +33,7 @@ const FilmeController = {
 
     if(!filme){
       res.status(404).json({
-        message: "Gênero não encontrado"}
+        message: "Filme não encontrado"}
       );
     }
 
