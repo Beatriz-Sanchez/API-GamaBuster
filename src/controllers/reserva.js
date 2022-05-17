@@ -17,10 +17,12 @@ const ReservaController = {
     const { id } = req.params;
     const reserva = await Reserva.findByPk(id);
 
-    if(reserva){
-      res.json(reserva);
+    if(!reserva){
+      res.status(404).json({
+        message: "Reserva não encontrado"});
+      
     } else {
-      res.status(404).json("Reserva não encontrado");
+      res.json(reserva);
     }
 
   },
@@ -54,11 +56,14 @@ const ReservaController = {
       res.status(404).json({
         message: "Reserva não encontrado"}
         );
+    } else {
+      await reserva.destroy();
+      res.status(204).send("");
     }
 
-    await reserva.destroy();
+    
 
-    res.status(204).send("");
+    
   },
 }
 

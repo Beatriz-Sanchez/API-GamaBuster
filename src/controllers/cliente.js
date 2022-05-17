@@ -20,7 +20,8 @@ const ClienteController = {
     if(cliente){
       res.json(cliente);
     } else {
-      res.status(404).json("Cliente não encontrado");
+      res.status(404).json({
+        message: "Cliente não encontrado"});
     }
 
   },
@@ -54,9 +55,11 @@ const ClienteController = {
       res.status(404).json({
         message: "Cliente não encontrado"}
         );
+    } else {
+      await cliente.destroy();
     }
 
-    await cliente.destroy();
+    
 
     res.status(204).send("");
   },

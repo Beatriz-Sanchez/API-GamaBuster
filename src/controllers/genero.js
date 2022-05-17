@@ -20,7 +20,8 @@ const GeneroController = {
     if(genero){
       res.json(genero);
     } else {
-      res.status(404).json("Gênero não encontrado");
+      res.status(404).json({
+        message: "Gênero não encontrado"});
     }
 
   },

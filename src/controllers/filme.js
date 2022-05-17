@@ -20,7 +20,8 @@ const FilmeController = {
     if(filme){
       res.json(filme);
     } else {
-      res.status(404).json("Filme não encontrado");
+      res.status(404).json({
+        message: "Filme não encontrado"});
     }
 
   },
@@ -54,9 +55,11 @@ const FilmeController = {
       res.status(404).json({
         message: "Filme não encontrado"}
         );
+    } else {
+      await filme.destroy();
     }
 
-    await filme.destroy();
+    
 
     res.status(204).send("");
   },
