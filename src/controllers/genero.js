@@ -1,4 +1,7 @@
-const Genero = require("../models/Genero")
+const {
+  Genero,
+  Filme
+} = require('../models')
 
 const GeneroController = {
 
@@ -8,34 +11,45 @@ const GeneroController = {
   },
 
   store: async (req, res) => {
-    const { nome } = req.body;
-    const novoGenero = await Genero.create({ nome })
+    const {
+      nome
+    } = req.body;
+    const novoGenero = await Genero.create({
+      nome
+    })
     res.json(novoGenero)
   },
 
   show: async (req, res) => {
-    const { id } = req.params;
-    const genero = await Genero.findByPk(id);
+    const {
+      id
+    } = req.params;
+    const genero = await Genero.findByPk(id, {include: Filme});
 
-    if(genero){
+    if (genero) {
       res.json(genero);
     } else {
       res.status(404).json({
-        message: "Gênero não encontrado"});
+        message: "Gênero não encontrado"
+      });
     }
 
   },
 
   update: async (req, res) => {
-    const { id } = req.params;
-    const { nome } = req.body;
+    const {
+      id
+    } = req.params;
+    const {
+      nome
+    } = req.body;
 
     const genero = await Genero.findByPk(id);
 
-    if(!genero){
+    if (!genero) {
       res.status(404).json({
-        message: "Gênero não encontrado"}
-      );
+        message: "Gênero não encontrado"
+      });
     }
 
     genero.nome = nome;
@@ -47,14 +61,16 @@ const GeneroController = {
   },
 
   destroy: async (req, res) => {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
 
     const genero = await Genero.findByPk(id);
 
-    if(!genero){
+    if (!genero) {
       res.status(404).json({
-        message: "Gênero não encontrado"}
-        );
+        message: "Gênero não encontrado"
+      });
     }
 
     await genero.destroy();

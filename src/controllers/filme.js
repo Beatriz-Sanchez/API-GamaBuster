@@ -1,68 +1,119 @@
-const Filme = require("../models/Filme")
+const { Op } = require("sequelize");
+
+const { Filme, Genero } = require("../models");
 
 const FilmeController = {
+  index: async (req, res) => {
+    try {
+      const allFilmes = await Filme.findAll({ include: Genero });
 
-  index: async (req,res) => {
-    const allFilmes = await Filme.findAll()
-    res.json(allFilmes);
+      res.json(allFilmes);
+    } catch (error) {
+      console.log(error.message);
+      res
+        .status(500)
+        .json({ error: "Oops, tivemos um erro, tente novamente." });
+    }
   },
-
   store: async (req, res) => {
-    const { nome, ano_lancamento, duracao, estoque } = req.body;
-    const novoFilme = await Filme.create({ nome,ano_lancamento, duracao, estoque })
-    res.json(novoFilme)
-  },
+    try {
+      const { nome, ano_lancamento, estoque, duracao, generos = [] } = req.body;
 
+      const novoFilme = await Filme.create({
+        nome,
+        ano_lancamento,
+        estoque,
+        duracao,
+      });
+
+      const generosData = await Genero.findAll({
+        where: { codigo: { [Op.in]: generos } },
+      });
+
+      await novoFilme.setGeneros(generosData);
+
+      const filmeCriado = await Filme.findByPk(novoFilme.codigo);
+
+      res.json(filmeCriado);
+    } catch (error) {
+      console.log(error.message);
+      res
+        .status(500)
+        .json({ error: "Oops, tivemos um erro, tente novamente." });
+    }
+  },
   show: async (req, res) => {
-    const { id } = req.params;
-    const filme = await Filme.findByPk(id);
+    try {
+      const { id } = req.params;
 
-    if(filme){
-      res.json(filme);
-    } else {
+      const filme = await Filme.findByPk(id, { include: Genero });
+
+      if (filme) {
+        return res.json(filme);
+      }
+
       res.status(404).json({
-        message: "Filme não encontrado"});
+        message: "Filme não encontrado",
+      });
+    } catch (error) {
+      console.log(error.message);
+      res
+        .status(500)
+        .json({ error: "Oops, tivemos um erro, tente novamente." });
     }
-
   },
-
   update: async (req, res) => {
-    const { id } = req.params;
-    const { nome, ano_lancamento, duracao, estoque } = req.body;
+    try {
+      const { id } = req.params;
+      const { nome, ano_lancamento, estoque, duracao, generos } = req.body;
 
-    const filme = await Filme.findByPk(id);
+      const filme = await Filme.findByPk(id);
 
-    if(!filme){
-      res.status(404).json({
-        message: "Filme não encontrado"}
+      if (!filme) {
+        res.status(404).json({
+          message: "Filme não encontrado",
+        });
+      }
+
+      await Filme.update(
+        { nome, ano_lancamento, estoque, duracao },
+        { where: { codigo: id } }
       );
+
+      if (Array.isArray(generos)) {
+        const generosData = await Genero.findAll({
+          where: { codigo: { [Op.in]: generos } },
+        });
+
+        await filme.setGeneros(generosData);
+      }
+
+      const filmeAtualizado = await Filme.findByPk(id, { include: Genero });
+
+      res.json(filmeAtualizado);
+    } catch (error) {
+      console.log(error.message);
+      res
+        .status(500)
+        .json({ error: "Oops, tivemos um erro, tente novamente." });
     }
-
-    await Filme.update({ nome, ano_lancamento, duracao, estoque },{where: {codigo: id}});
-
-    const filmeAtualizado = await Filme.findByPk(id);
-
-    res.json(filmeAtualizado);
-
   },
-
   destroy: async (req, res) => {
     const { id } = req.params;
-
     const filme = await Filme.findByPk(id);
 
-    if(!filme){
+    if (!filme) {
       res.status(404).json({
-        message: "Filme não encontrado"}
-        );
+        message: "Filme não encontrado",
+      });
     } else {
       await filme.destroy();
+
+    res.status(204).send("");
     }
 
     
-
-    res.status(204).send("");
   },
-}
+};
 
 module.exports = FilmeController;

@@ -32,7 +32,8 @@ const Cliente = db.define("Cliente", {
   },
 }, {
   tableName: "cliente",
-  timestamps: false
+  timestamps: false,
+  underscored: true
 });
 
 module.exports = Cliente

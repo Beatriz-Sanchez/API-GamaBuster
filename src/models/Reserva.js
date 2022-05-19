@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const db = require("../database");
+const Cliente = require("./Cliente")
 
 const Reserva = db.define("Reserva", {
   codigo: {
@@ -18,7 +19,15 @@ const Reserva = db.define("Reserva", {
   total: {
     type: DataTypes.DECIMAL(12, 2),
     allowNull: false,
-  }
-}, {tableName: "reserva", timestamps: false});
+  },
+  cliente_codigo: {
+    type: DataTypes.INTEGER,
+    Reference: {
+      model: Cliente,
+      key: "codigo",
+    },
+    unique: true,
+  },
+}, {tableName: "reserva", timestamps: false,underscored: true});
 
 module.exports = Reserva
