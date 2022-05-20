@@ -14,63 +14,71 @@ const ClienteController = {
     }
   },
   store: async (req, res) => {
+    const {
+      nome,
+      sobrenome,
+      cpf,
+      telefone,
+      email,
+      data_nascimento,
+      endereco = {},
+    } = req.body;
+
+    const { logradouro, numero, bairro, cidade, estado, cep } = endereco;
+    let novoCliente;
+
     try {
-      const {
+      novoCliente = await Cliente.create({
         nome,
         sobrenome,
         cpf,
         telefone,
         email,
         data_nascimento,
-        endereco = {},
-      } = req.body;
-
-      const { logradouro, numero, bairro, cidade, estado, cep } = endereco;
-
-      const novoCliente = await Cliente.create(
-        {
-          nome,
-          sobrenome,
-          cpf,
-          telefone,
-          email,
-          data_nascimento,
-          Endereco: {
-            logradouro,
-            numero,
-            bairro,
-            cidade,
-            estado,
-            cep,
-          },
-        },
-        { include: [Endereco] }
-      );
-
-      // await Endereco.create({
-      //   logradouro,
-      //   numero,
-      //   bairro,
-      //   cidade,
-      //   estado,
-      //   cep,
-      //   cliente_id: novoCliente.codigo,
-      // });
-      
-
-      res.json(novoCliente);
+      });
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
+      res
+        .status(400)
+        .json(
+          "Oops, algo deu errado. Cheque as informações enviadas e tente novamente"
+        );
+    }
+
+    try {
+      if (endereco !== {}) {
+        try {
+          const novoEndereco = await novoCliente.createEndereco({logradouro, numero, bairro, cidade, estado, cep});
+
+          res.status(200).json({ novoCliente, novoEndereco });
+        } catch (error) {
+          console.error(error.message);
+          res
+          .status(400)
+          .json(
+            "Oops, algo deu errado na criacao do endereco. Cheque as informações enviadas e tente novamente"
+          );
+        }
+      } else{
+        res.status(200).json(novoCliente);
+      }
+
+      
+      
+    } catch (error) {
+      console.error(error.message);
       res
         .status(500)
-        .json({ error: "Oops, tivemos um erro, tente novamente." });
+        .json(
+          "Oops, algo deu errado. Tente novamente"
+        );
     }
   },
   show: async (req, res) => {
     const { id } = req.params;
 
     try {
-      const cliente = await Cliente.findByPk(id, { include: [{all: true}] });
+      const cliente = await Cliente.findByPk(id, { include: [{ all: true }] });
 
       if (cliente) {
         return res.json(cliente);
@@ -119,15 +127,7 @@ const ClienteController = {
           { where: { codigo: cliente.Endereco.codigo } }
         );
       } else {
-        await Endereco.create({
-          logradouro,
-          numero,
-          bairro,
-          cidade,
-          estado,
-          cep,
-          cliente_codigo: id,
-        });
+        await cliente.createEndereco({logradouro, numero, bairro, cidade, estado, cep});
       }
 
       const clienteAtualizado = await Cliente.findByPk(id, {
@@ -147,7 +147,7 @@ const ClienteController = {
 
     try {
       const cliente = await Cliente.findByPk(id);
-      const endereco = await cliente.getEndereco()
+      const endereco = await cliente.getEndereco();
 
       if (!cliente) {
         res.status(404).json({
@@ -159,7 +159,7 @@ const ClienteController = {
 
       res.status(204).send("");
     } catch (error) {
-      console.error(error.message)
+      console.error(error.message);
       res
         .status(500)
         .json({ error: "Oops, tivemos um erro, tente novamente." });
